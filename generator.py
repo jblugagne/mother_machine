@@ -86,27 +86,64 @@ def buildchannel( inlet_y, obs_y, obs_length=23e6, bend_radius=2e6, chan_width =
     
     return chan
 
-layout = pya.Layout()
-channels = layout.create_cell("channels")
-l1 = layout.layer(1, 0)
-
 ## Path to git repo:
 git_repo_path = "/home/jeanbaptiste/bu/wafers/mother_machine/"
 
-## MAIN CHANNELS
-num_channels = 8
-max_width = 12e6
-max_length =  35e6
-obs_spacing = 530e3
-inlets_spacing = max_width/(num_channels-1)
-chan_width = 400e3
+### PARAMETERS
+# distance units are in nm
 
-## Get one middle channel to know the path length:(I'm removing this part for now, there isn't that much change)
-#midchan = buildchannel(inlet_y=inlets_spacing/2,inlet_x=-max_length/2,obs_y=obs_spacing/2)
-#channels_length = midchan.length()
-#print(midchan.length())
-channels_length = max_length
+# main channels
+num_channels = 8 # Number of channels per chip
+max_width = 12e6 # Roughly the width of 1 chip
+max_length =  35e6 # Roughly the length of 1 chip
+channels_length = max_length # Roughly length of 1 channel (all channels will be approx. the same length)
+obs_spacing = 530e3 # Spacing between main channels
+inlets_spacing = max_width/(num_channels-1) # Spacing between the tubing inlets (along y axis)
+chan_width = 400e3 # Width of the  channels
 
+# chambers
+spacing_chambers = 5e3 # Spacing between chambers
+width1 =  1300 # Chamber width for set 1 
+width2 = 1500 # Chamber width for set 2
+width3 = 1800 # Chamber width for set 3
+length1 = 25e3 # Chamber length for side 1
+length2 = 35e3 # Chamber length for side 2
+lengthXi = 8e3 # Chamber length for Xi's part
+num_chambers = 1000 # Number of chambers per set
+num_Xi = 400 # Number of chambers per set for Xi's part
+
+# Focusing crosses:
+cross_size = 15e3
+cross_thickness = 2e3
+spacing_crosses = 20e3
+num_crosses = (3*(num_chambers+3)+num_Xi)*spacing_chambers/spacing_crosses
+
+# Text
+numberssize = 15e3
+bignumberssize = 2e6
+expl_text = "ch1l25w1.3"
+
+# General layout:
+spacing_machines = max_width + 4.5e6 # Spacing between the different machines that will be on the wafer
+num_machines = 4 # Number of machines to put on the chip
+align_cross_size = 5e6 # Size of the alignment crosses (This is just informational, changing this value does not change the size of the actual crosses)
+cross1_x = max_length/2 + align_cross_size + 5e6 # Alignment crosses positions
+cross1_y = 0
+cross2_x = -(max_length/2 + align_cross_size + 5e6)
+cross2_y = 0
+
+spacing_layers = spacing_machines/4 # Spacing on the mask between the chambers "layer" and the channels "layer". Set this value to 0 to check what the final design on the wafer should look like
+# spacing_layers = 0
+
+### Build
+
+## Init
+layout = pya.Layout()
+l1 = layout.layer(1, 0)
+
+
+## Main channels:
+channels = layout.create_cell("channels")
 for indChan in range(0,num_channels/2):
     inlet_y = (indChan + 0.5)*inlets_spacing
     obs_y = (indChan + 0.5)*obs_spacing
@@ -114,55 +151,52 @@ for indChan in range(0,num_channels/2):
     channels.shapes(l1).insert(newchan)
     newchan = buildchannel(inlet_y=-inlet_y, obs_y=-obs_y, chan_length=channels_length, chan_width=chan_width)
     channels.shapes(l1).insert(newchan)
-# Add big numbers:
-bignumberssize = 2e6
-chnum = writetext("ch1l25w1.3",layout, bignumberssize)
+
+# Add explanatory text:
+chnum = writetext(expl_text,layout, bignumberssize)
 numbers = pya.CellInstArray(chnum.cell_index(),
     pya.Trans(pya.Vector(-(3*num_chambers+6)*spacing_chambers/2 - (bignumberssize + 1.5e6),
         -(num_channels/2)*obs_spacing - (bignumberssize + 100e3))))
 channels.insert(numbers)
 
-## Chambers:
 
+## Chambers:
 # 25 um chambers
 chamber_1_25e3 = layout.create_cell("chamber_1_25e3")
-chamber = makechamber(0, 0, width=1300, length=25e3 )
+chamber = makechamber(0, 0, width=width1, length=length1 )
 chamber_1_25e3.shapes(l1).insert(chamber)
 
 chamber_2_25e3 = layout.create_cell("chamber_2_25e3")
-chamber = makechamber(0, 0, width=1500, length=25e3 )
+chamber = makechamber(0, 0, width=width2, length=length1 )
 chamber_2_25e3.shapes(l1).insert(chamber)
 
 chamber_3_25e3 = layout.create_cell("chamber_3_25e3")
-chamber = makechamber(0, 0, width=1800, length=25e3 )
+chamber = makechamber(0, 0, width=width3, length=length1 )
 chamber_3_25e3.shapes(l1).insert(chamber)
 
 # 35 um chambers
 chamber_1_35e3 = layout.create_cell("chamber_1_35e3")
-chamber = makechamber(0, 0, width=1300, length=35e3)
+chamber = makechamber(0, 0, width=width1, length=length2)
 chamber_1_35e3.shapes(l1).insert(chamber)
 
 chamber_2_35e3 = layout.create_cell("chamber_2_35e3")
-chamber = makechamber(0, 0, width=1500, length=35e3 )
+chamber = makechamber(0, 0, width=width2, length=length2 )
 chamber_2_35e3.shapes(l1).insert(chamber)
 
 chamber_3_35e3 = layout.create_cell("chamber_3_35e3")
-chamber = makechamber(0, 0, width=1800, length=35e3 )
+chamber = makechamber(0, 0, width=width3, length=length2 )
 chamber_3_35e3.shapes(l1).insert(chamber)
 
 # Xi's short chambers:
 chamber_Xi1 = layout.create_cell("chamber_Xi1")
-chamber = makechamber(0, 0, width=1300, length=8e3 )
+chamber = makechamber(0, 0, width=width1, length=lengthXi )
 chamber_Xi1.shapes(l1).insert(chamber)
 chamber_Xi2 = layout.create_cell("chamber_Xi2")
-chamber = makechamber(0, 0, width=1500, length=8e3 )
+chamber = makechamber(0, 0, width=width2, length=lengthXi )
 chamber_Xi2.shapes(l1).insert(chamber)
 
 
 ## Instantiate arrays of mother machines:
-spacing_chambers = 5e3
-num_chambers = 1000
-
 # 25:
 Multi_chamber_1_25e3 = layout.create_cell("Multi_chamber_1_25e3")
 Mach_array = pya.CellInstArray(chamber_1_25e3.cell_index(),pya.Trans(),pya.Vector(spacing_chambers,0),pya.Vector(0,0),num_chambers, 1)
@@ -190,8 +224,6 @@ Mach_array = pya.CellInstArray(chamber_3_35e3.cell_index(),pya.Trans(),pya.Vecto
 Multi_chamber_3_35e3.insert(Mach_array)
 
 #Xi:
-num_Xi = 400
-
 Multi_chamber_Xi1 = layout.create_cell("Multi_chamber_Xi1")
 Mach_array = pya.CellInstArray(chamber_Xi1.cell_index(),pya.Trans(),pya.Vector(spacing_chambers,0),pya.Vector(0,0),num_Xi, 1)
 Multi_chamber_Xi1.insert(Mach_array)
@@ -201,9 +233,7 @@ Mach_array = pya.CellInstArray(chamber_Xi2.cell_index(),pya.Trans(),pya.Vector(s
 Multi_chamber_Xi2.insert(Mach_array)
 
 
-## Focusing cross:
-cross_size = 15e3
-cross_thickness = 2e3
+## Create small focusing cross:
 focuscross = layout.create_cell("focuscross")
 cross1 = pya.Box(pya.Point(-cross_thickness/2, -cross_size/2), pya.Point(cross_thickness/2, cross_size/2))
 cross2 = pya.Box(pya.Point(-cross_size/2, -cross_thickness/2), pya.Point(cross_size/2, cross_thickness/2))
@@ -214,11 +244,8 @@ focuscross.shapes(l1).insert(cross)
 
 
 ## Instantiate into assembled "sides"
-spacing_crosses = 20e3
-num_crosses = (3*(num_chambers+3)+num_Xi)*spacing_chambers/spacing_crosses
-
 # 25:
-crosses_shift = 30e3 + cross_size/2
+crosses_shift = length1 +  spacing_chambers + cross_size/2
 AssembleSide_25e3 = layout.create_cell("AssembleSide_25e3")
 Mach_array = pya.CellInstArray(Multi_chamber_1_25e3.cell_index(),pya.Trans())
 AssembleSide_25e3.insert(Mach_array)
@@ -232,7 +259,7 @@ cross_array = pya.CellInstArray(focuscross.cell_index(),pya.Trans(pya.Vector(0,-
 AssembleSide_25e3.insert(cross_array)
 
 # 35:
-crosses_shift = 40e3 + cross_size/2
+crosses_shift = length2 +  spacing_chambers + cross_size/2
 AssembleSide_35e3 = layout.create_cell("AssembleSide_35e3")
 Mach_array = pya.CellInstArray(Multi_chamber_1_35e3.cell_index(),pya.Trans())
 AssembleSide_35e3.insert(Mach_array)
@@ -264,7 +291,6 @@ Mach_array = pya.CellInstArray(Assemble_2sides.cell_index(),
   0)
 Multi_assembled.insert(Mach_array)
 # Add numbers:
-numberssize = 15e3
 for i in range(0,num_channels):
   chnum = writetext(str(i+1),layout, numberssize)
   chnum.flatten(True)
@@ -277,16 +303,8 @@ for i in range(0,num_channels):
   Multi_assembled.insert(numbers)
 
 
-## Instantiate & add alignment crosses:
-spacing_machines = max_width + 4.5e6
-num_machines = 4
-cross_size = 5e6
-cross1_x = max_length/2 + cross_size + 5e6
-cross1_y = 0
-cross2_x = -(max_length/2 + cross_size + 5e6)
-cross2_y = 0
-
-#Load alignment cross from file: (Thank you Clément for the crosses, they are really good)
+## Instantiate chambers and channels with alignment crosses:
+#Load alignment cross from file: (Thank you Clément for the crosses)
 layout.read(git_repo_path + "alignment_crosses/maincross_tri.gds")
 layout.move_layer(2L,0L) # Put all on the same layer
 layout.clear_layer(2L)
@@ -301,11 +319,11 @@ chambers = pya.CellInstArray(Multi_assembled.cell_index(),
     num_machines,
     1)
 Multi_assembled_withCrosses.insert(chambers)
-
 cross1 = pya.CellInstArray(alignment_cross.cell_index(),pya.Trans(pya.Vector(cross1_x,cross1_y)))
 cross2 = pya.CellInstArray(alignment_cross.cell_index(),pya.Trans(pya.Vector(cross2_x,cross2_y)))
 Multi_assembled_withCrosses.insert(cross1)
 Multi_assembled_withCrosses.insert(cross2)
+
 # Channels:
 channels_withCrosses = layout.create_cell("channels_withCrosses")
 chans = pya.CellInstArray(channels.cell_index(),
@@ -319,8 +337,6 @@ channels_withCrosses.insert(cross1)
 channels_withCrosses.insert(cross2)
 
 ## Form the final mask:
-spacing_layers = spacing_machines/4
-#spacing_layers = 0
 mask = layout.create_cell("mask")
 final = pya.CellInstArray(channels_withCrosses.cell_index(),pya.Trans(pya.Vector(0,-spacing_layers)))
 mask.insert(final)
