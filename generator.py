@@ -326,4 +326,4 @@ final = pya.CellInstArray(Multi_assembled_withCrosses.cell_index(),pya.Trans(pya
 mask.insert(final)
 
 
-layout.write("/home/jeanbaptiste/bu/wafers/mother_machine.gds")
+layout.write("/home/jeanbaptiste/bu/wafers/mother_machine/mother_machine.gds")
