@@ -90,6 +90,8 @@ layout = pya.Layout()
 channels = layout.create_cell("channels")
 l1 = layout.layer(1, 0)
 
+## Path to git repo:
+git_repo_path = "/home/jeanbaptiste/bu/wafers/mother_machine/"
 
 ## MAIN CHANNELS
 num_channels = 8
@@ -284,8 +286,8 @@ cross1_y = 0
 cross2_x = -(max_length/2 + cross_size + 5e6)
 cross2_y = 0
 
-#Load from file:
-layout.read("/home/jeanbaptiste/bu/wafers/align_crosses/maincross_tri.gds")
+#Load alignment cross from file: (Thank you Clément for the crosses, they are really good)
+layout.read(git_repo_path + "alignment_crosses/maincross_tri.gds")
 layout.move_layer(2L,0L) # Put all on the same layer
 layout.clear_layer(2L)
 alignment_cross = layout.cell("alignment_cross")
@@ -326,4 +328,4 @@ final = pya.CellInstArray(Multi_assembled_withCrosses.cell_index(),pya.Trans(pya
 mask.insert(final)
 
 
-layout.write("/home/jeanbaptiste/bu/wafers/mother_machine/mother_machine.gds")
+layout.write( git_repo_path + "mother_machine.gds")
