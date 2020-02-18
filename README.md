@@ -1,6 +1,6 @@
 # mother_machine
 
-I am no longer maintaining this repo, please checkout this one: https://gitlab.com/dunloplab/mother_machine
+I am no longer maintaining this repo, please checkout this one: [](https://gitlab.com/dunloplab/mother_machine)
 
 This is a python script to generate the mother machine GDSII file that is contained in this repo (mother_machine.gds) with [KLayout](http://www.klayout.de/)
 Please use it as a quick and dirty example to learn how to make similar microlfuidic masks designs.
