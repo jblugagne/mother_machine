@@ -133,7 +133,7 @@ cross2_x = -(max_length/2 + align_cross_size + 5e6)
 cross2_y = 0
 
 spacing_layers = spacing_machines/4 # Spacing on the mask between the chambers "layer" and the channels "layer". Set this value to 0 to check what the final design on the wafer should look like
-# spacing_layers = 0
+#spacing_layers = 0
 
 ### Build
 
@@ -144,7 +144,7 @@ l1 = layout.layer(1, 0)
 
 ## Main channels:
 channels = layout.create_cell("channels")
-for indChan in range(0,num_channels/2):
+for indChan in range(0,int(num_channels/2)):
     inlet_y = (indChan + 0.5)*inlets_spacing
     obs_y = (indChan + 0.5)*obs_spacing
     newchan = buildchannel(inlet_y=inlet_y, obs_y=obs_y, chan_length=channels_length, chan_width=chan_width)
@@ -303,11 +303,12 @@ for i in range(0,num_channels):
   Multi_assembled.insert(numbers)
 
 
-## Instantiate chambers and channels with alignment crosses:
+# Instantiate chambers and channels with alignment crosses:
 #Load alignment cross from file: (Thank you Clément for the crosses)
 layout.read(git_repo_path + "alignment_crosses/maincross_tri.gds")
-layout.move_layer(2L,0L) # Put all on the same layer
-layout.clear_layer(2L)
+# Put all on the same layer:
+layout.move_layer(2,0)
+layout.clear_layer(2)
 alignment_cross = layout.cell("alignment_cross")
 
 # Chambers:
@@ -339,9 +340,10 @@ channels_withCrosses.insert(cross2)
 ## Form the final mask:
 mask = layout.create_cell("mask")
 final = pya.CellInstArray(channels_withCrosses.cell_index(),pya.Trans(pya.Vector(0,-spacing_layers)))
-mask.insert(final)
+mask.insert(final) # Comment this line to get only the flow channels
 final = pya.CellInstArray(Multi_assembled_withCrosses.cell_index(),pya.Trans(pya.Vector(0,spacing_layers)))
-mask.insert(final)
+mask.insert(final) # Comment this line to get only the growth chambers
 
 
 layout.write( git_repo_path + "mother_machine.gds")
+
